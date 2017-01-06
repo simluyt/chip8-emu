@@ -220,7 +220,7 @@ case 0xF000:
         case 0x0008: // 0xFX18 --> Sets the sound timer to VX.
           c.sound_timer = c.V[x]
         case 0x000E: // 0xFX1E --> Adds VX to I. (TODO: Don't forget the overflow rule for Spacefight)
-          c.I = c.V[x]
+          c.I += uint16(c.V[x])
         default:
           fmt.Printf("Invalid instruction: 0x%X", c.opcode)
       }
