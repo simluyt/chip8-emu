@@ -14,48 +14,35 @@ type Chip8 struct {
   // OPCODE
   opcode uint16;
 
-
   // MEMORY
-
   memory [4096] byte;
 
-
   // REGISTER
-
   V [16] byte;
 
 // INDEX AND PROGRAM COUNTER
-
   I uint16;
   pc uint16;
 
 // GRAPHICS OUTPUT
-
-
-  gfx [64][32] byte;
+  gfx [32 * 64] byte;
 
 // TIMERS
-
   delay_timer byte;
   sound_timer byte;
 
 // STACK
-
   stack [16] uint16;
   sp uint16;
 
 // KEYPAD
-
   key [16] byte;
-
-// PKG TEST
-
 
 }
 
 
 
-// INIT METHOD
+// INIT
 func (c *Chip8) Init() {
 
   fmt.Printf("Initializing...\n")
@@ -72,8 +59,11 @@ func (c *Chip8) Init() {
 
 }
 
+// LOAD
+
 func (c *Chip8) Load(filename string)  {
 
+  fmt.Printf("Loading: %s...\n", filename)
   program, _:= ioutil.ReadFile(filename)
 
   for i := 0; i < len(program); i++ {
@@ -93,7 +83,7 @@ func (c *Chip8) Cycle() {
 
   c.pc += 2 // Points the Program Counter to the next first part of an opcode
 
-  // DECODE maybe in aparte func met kleine letterrr
+  // DECODE
 
   switch c.opcode & 0xF000 {
     case 0x0000:
@@ -165,6 +155,12 @@ case 0x8000:
     case 0x8003: // 0x8XY3 --> Assign value VY to VX XOR VY
       c.V[x] = c.V[x] ^ c.V[y]
     case 0x8004: // 0x8XY4 --> Adds value VY to VX if there is a carry set VF to 1 else to 0
+      if(c.V[(c.opcode & 0x00F0) >> 4] > (0xFF - c.V[(c.opcode & 0x0F00) >> 8])){
+        c.V[0xF] = 1 //carry
+      } else {
+        c.V[0xF] = 0;
+        c.V[(c.opcode & 0x0F00) >> 8] += c.V[(c.opcode & 0x00F0) >> 4]
+      }
     case 0x8005: // 0x8XY5 --> Subtracts value VY to VX if there is a carry set VF to 1 else to 0
     case 0x8006:
     case 0x8007:
@@ -191,9 +187,9 @@ case 0xC000: // 0xCXNN --> Assign a random(0..255) AND NN to VX
 
 case 0xD000: // Draw
 case 0xE000:
-  switch c.opcode & 0xE0F0 {
-    case 0xE090:
-    case 0xE0A0:
+  switch c.opcode & 0xE0FF {
+    case 0xE09E:
+    case 0xE0A1:
     default:
     fmt.Printf("Invalid instruction: 0x%X", c.opcode)
 
@@ -228,14 +224,37 @@ case 0xF000:
   case 0x0020: // 0FX29 --> Sets I to the location of the sprite for the character in VX. Characters 0-F (in hexadecimal) are represented by a 4x5 font.
 
   case 0x0030:
-  case 0x0050:
-  case 0x0060:
+    c.memory[c.I]     = c.V[(c.opcode & 0x0F00) >> 8] / 100;
+    c.memory[c.I + 1] = (c.V[(c.opcode & 0x0F00) >> 8] / 10) % 10;
+    c.memory[c.I + 2] = (c.V[(c.opcode & 0x0F00) >> 8] % 100) % 10;
 
+  case 0x0050: //0FX55 --> Stores V0 to VX (including VX) in memory starting at address I
+    for i := 0; i <= int(x); i++ {
+      c.memory[uint16(c.I) + uint16(i)] = c.V[i]
+    }
+  case 0x0060: //0FX65 --> Fills V0 to VX (including VX) with values from memory starting at address I
+    for i := 0; i <= int(x); i++ {
+       c.V[i] = c.memory[uint16(c.I) + uint16(i)]
+    }
   }
 default:
   fmt.Printf("Invalid instruction: 0x%X", c.opcode)
 
 }
+
+
+// Update timers
+if(c.delay_timer > 0){
+  c.delay_timer--
+}
+
+if c.sound_timer > 0 {
+  if c.sound_timer == 1 {
+    fmt.Printf("BEEP!\n")
+  }
+c.sound_timer--
+}
+
 }
 
 
@@ -275,3 +294,5 @@ var fontset = [80]byte{
   0xE0, 0x90, 0x90, 0x90, 0xE0, // D
   0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
   0xF0, 0x80, 0xF0, 0x80, 0x80 }  // F
+
+// BCD_TABLE

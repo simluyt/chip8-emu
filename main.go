@@ -17,7 +17,16 @@ func main() {
 
   myChip.Init()
   myChip.Load("PONG")
-  myChip.Test()
+
+
+  for {
+    myChip.Cycle()
+
+    if myChip.V[0xF] {
+      
+    }
+
+  }
 
 
 }
