@@ -89,16 +89,93 @@ func (c *Chip8) Cycle() {
 
   // FETCH
   c.opcode = uint16(c.memory[c.pc])<<8 | uint16(c.memory[c.pc + 1])
-  c.pc += 2
+
+
+  c.pc += 2 // Points the Program Counter to the next first part of an opcode
 
   // DECODE maybe in aparte func met kleine letterrr
 
   switch c.opcode & 0xF000 {
-  case 0x000:
+    case 0x0000:
+      switch c.opcode & 0x000F {
+        // Ommiting 0x0NNN for now...
+        case 0x0000:  //Clear the screen
+        case 0x000E:  //Return from subroutine
+          c.sp--
+          c.pc = c.stack[c.sp]
+        default:
+          fmt.Printf("Invalid instruction: 0x%X", c.opcode)
+        }
+    case 0x1000: // 0x1NNN -> Program counter jumps to NNN
+      c.pc = c.opcode & 0x0FFF
+
+    case 0x2000: // 0x2NNN -> Calls subroutine at NNN
+      c.stack[c.sp] = c.pc
+      c.sp++
+      c.pc = c.opcode & 0x0FFF
+
+case 0x3000: // 0x3XNN -> Skips next instruction if VX == NN
+  x := c.opcode & 0x0F00>>2
+  nn := c.opcode & 0x00FF
 
 
+  if c.V[x] == byte(nn) {
+    c.pc += 2 // Opcodes are 2 memory spaces (bytes)
   }
 
+case 0x4000: // 0x4XNN -> Skips next instruction if VX != NN
+  x := c.opcode & 0x0F00>>2
+  nn := c.opcode & 0x00FF
+
+  if c.V[x] != byte(nn) {
+    c.pc += 2// Opcodes are 2 memory spaces (bytes)
+  }
+
+case 0x5000: // 0x5XY0 -> Skips next instruction if VX == VY (Should this produce err if not ending in 0?)
+  x := c.opcode & 0x0F00>>2
+  y := c.opcode & 0x00F0>>1
+
+  if c.V[x] != c.V[y] {
+    c.pc += 2// Opcodes are 2 memory spaces (bytes)
+  }
+
+case 0x6000:  // 0x6XNN -> Stores NN in register VX
+  x := c.opcode & 0x0F00>>2
+  nn := c.opcode & 0x00FF
+
+  c.V[x] = byte(nn)
+
+case 0x7000:  // 0x6XNN -> Adds NN to register VX
+  x := c.opcode & 0x0F00>>2
+  nn := c.opcode & 0x00FF
+
+  c.V[x] += byte(nn)
+
+case 0x8000:
+  switch c.opcode & 0xF00F {
+  case 0x8000:
+  case 0x8001:
+  case 0x8002:
+  case 0x8003:
+  case 0x8004:
+  case 0x8005:
+  case 0x8006:
+  case 0x8007:
+  case 0x800E:
+  default:
+    fmt.Printf("Invalid instruction: 0x%X", c.opcode)
+  }
+case 0x9000:
+case 0xA000:
+case 0xB000:
+case 0xC000:
+case 0xD000:
+case 0xE000:
+case 0xF000:
+default:
+  fmt.Printf("Invalid instruction: 0x%X", c.opcode)
+
+}
 }
 
 
