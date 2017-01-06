@@ -16,6 +16,8 @@ func main() {
   myChip := &chip8.Chip8{}
 
   myChip.Init()
+  myChip.Load("PONG")
+  myChip.Test()
 
 
 }
