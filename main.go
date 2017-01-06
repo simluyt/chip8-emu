@@ -1,9 +1,21 @@
 package main
 
-import ( "fmt"
+import (
+  "fmt"
 
+  "github.com/darkincred/chip8-emu/chip8"
 )
 
+// CREATE THE CHIP8 struct
+
+
+
 func main() {
-  fmt.Printf("Hello, world\n")
+  fmt.Printf("Testing...\n")
+
+  myChip := &chip8.Chip8{}
+
+  myChip.Init()
+
+
 }
