@@ -4,6 +4,8 @@ import (
   "fmt"
   "io/ioutil"
   "math/rand"
+
+  "github.com/darkincred/chip8-emu/disp"
 )
 
 
@@ -25,7 +27,13 @@ type Chip8 struct {
   pc uint16;
 
 // GRAPHICS OUTPUT
+
+  //drawFlag := &V[0xF]
   gfx [32 * 64] byte;
+
+// Display
+
+
 
 // TIMERS
   delay_timer byte;
@@ -80,6 +88,8 @@ func (c *Chip8) Cycle() {
   // FETCH
   c.opcode = uint16(c.memory[c.pc])<<8 | uint16(c.memory[c.pc + 1])
 
+  fmt.Printf("Current instruction: 0x%X\n", c.opcode)
+
 
   c.pc += 2 // Points the Program Counter to the next first part of an opcode
 
@@ -105,7 +115,7 @@ func (c *Chip8) Cycle() {
       c.pc = c.opcode & 0x0FFF
 
 case 0x3000: // 0x3XNN -> Skips next instruction if VX == NN
-  x := (c.opcode & 0x0F00)>>2
+  x := (c.opcode & 0x0F00)>>8
   nn := c.opcode & 0x00FF
 
 
@@ -114,7 +124,7 @@ case 0x3000: // 0x3XNN -> Skips next instruction if VX == NN
   }
 
 case 0x4000: // 0x4XNN -> Skips next instruction if VX != NN
-  x := (c.opcode & 0x0F00)>>2
+  x := (c.opcode & 0x0F00)>>8
   nn := c.opcode & 0x00FF
 
   if c.V[x] != byte(nn) {
@@ -122,28 +132,29 @@ case 0x4000: // 0x4XNN -> Skips next instruction if VX != NN
   }
 
 case 0x5000: // 0x5XY0 -> Skips next instruction if VX == VY (Should this produce err if not ending in 0?)
-  x := (c.opcode & 0x0F00)>>2
-  y := (c.opcode & 0x00F0)>>1
+  x := (c.opcode & 0x0F00)>>8
+  y := (c.opcode & 0x00F0)>>4
 
   if c.V[x] != c.V[y] {
     c.pc += 2// Opcodes are 2 memory spaces (bytes)
   }
 
 case 0x6000:  // 0x6XNN -> Stores NN in register VX
-  x := (c.opcode & 0x0F00)>>2
+  x := (c.opcode & 0x0F00)>>8
   nn := c.opcode & 0x00FF
+
 
   c.V[x] = byte(nn)
 
 case 0x7000:  // 0x6XNN -> Adds NN to register VX
-  x := (c.opcode & 0x0F00)>>2
+  x := (c.opcode & 0x0F00)>>8
   nn := c.opcode & 0x00FF
 
   c.V[x] += byte(nn)
 
 case 0x8000:
-  x := (c.opcode & 0x0F00)>>2
-  y := (c.opcode & 0x00F)>>1
+  x := (c.opcode & 0x0F00)>>8
+  y := (c.opcode & 0x00F)>>4
   switch c.opcode & 0xF00F {
 
     case 0x8000: // 0x8XY0 --> Assign value VY to VX
@@ -161,7 +172,13 @@ case 0x8000:
         c.V[0xF] = 0;
         c.V[(c.opcode & 0x0F00) >> 8] += c.V[(c.opcode & 0x00F0) >> 4]
       }
-    case 0x8005: // 0x8XY5 --> Subtracts value VY to VX if there is a carry set VF to 1 else to 0
+    case 0x8005: // 0x8XY5 --> Subtracts value VY from VX if there is a carry set VF to 1 else to 0
+    if(c.V[(c.opcode & 0x0F00) >> 8] < (c.V[(c.opcode & 0x00F0) >> 4])){
+      c.V[0xF] = 1 //carry
+    } else {
+      c.V[0xF] = 0;
+      c.V[(c.opcode & 0x0F00) >> 8] -= c.V[(c.opcode & 0x00F0) >> 4]
+    }
     case 0x8006:
     case 0x8007:
     case 0x800E:
@@ -169,8 +186,8 @@ case 0x8000:
     fmt.Printf("Invalid instruction: 0x%X", c.opcode)
   }
 case 0x9000: // 0x9XY0 -> Skips next instruction if VX == VY (Should this produce err if not ending in 0?)
-  x := (c.opcode & 0x0F00)>>2
-  y := (c.opcode & 0x00F0)>>1
+  x := (c.opcode & 0x0F00)>>8
+  y := (c.opcode & 0x00F0)>>4
 
   if c.V[x] != c.V[y] {
     c.pc += 2// Opcodes are 2 memory spaces (bytes)
@@ -182,7 +199,7 @@ case 0xB000: // 0xBNNN --> Program counter jumps to NNN + V0
   c.pc = (c.opcode & 0x0FFF) + uint16(c.V[0])
 
 case 0xC000: // 0xCXNN --> Assign a random(0..255) AND NN to VX
-  x := (c.opcode & 0x0F00)>>2
+  x := (c.opcode & 0x0F00)>>8
   c.V[x] = byte(rand.Intn(255)) & 0x00FF
 
 case 0xD000: // Draw
@@ -195,7 +212,7 @@ case 0xE000:
 
   }
 case 0xF000:
-  x := (c.opcode & 0x0F00)>>2
+  x := (c.opcode & 0x0F00)>>8
 
   switch c.opcode & 0x00F0 {
     case 0x0000:
@@ -204,7 +221,7 @@ case 0xF000:
           c.V[x] = c.delay_timer
 
         case 0x000A: // 0xFX0A --> A key press is awaited, and then stored in VX. (Blocking Operation. All instruction halted until next key event)
-
+        //  c.V[x] = getKey()
         default:
           fmt.Printf("Invalid instruction: 0x%X", c.opcode)
         }
@@ -262,9 +279,24 @@ c.sound_timer--
 
 func (c *Chip8) Test() {
   //fmt.Printf("Testing...\n")
+  c.Init()
 
+  c.memory[0x200] = 0x61
+  c.memory[0x201] = 0x02
+  c.memory[0x202] = 0x62
+  c.memory[0x203] = 0x03
 
+  c.Cycle()
+  c.Cycle()
 
+  fmt.Printf("REG 1: 0x%X and REG 2: 0x%X\n", c.V[0x1], c.V[0x2])
+
+  c.memory[0x204] = 0x81
+  c.memory[0x205] = 0x25
+
+  c.Cycle()
+
+  fmt.Printf("REG 1: 0x%X and REG 2: 0x%X\ndrawFlag: 0x%X\n", c.V[0x1], c.V[0x2],c.V[0xF])
 
   // for i := 0x200; i < 0x230; i++ {
   //   fmt.Printf("%x\n", c.memory[i])

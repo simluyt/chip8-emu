@@ -2,8 +2,10 @@ package main
 
 import (
   "fmt"
+  "os"
 
   "github.com/darkincred/chip8-emu/chip8"
+  
 )
 
 // CREATE THE CHIP8 struct
@@ -15,18 +17,19 @@ func main() {
 
   myChip := &chip8.Chip8{}
 
-  myChip.Init()
-  myChip.Load("PONG")
 
+  myChip.Test()
+  //myChip.Load("PONG")
 
-  for {
-    myChip.Cycle()
-
-    if myChip.V[0xF] {
-      
-    }
-
-  }
+  //
+  // for {
+  //   myChip.Cycle()
+  //
+  //   if myChip.V[0xF] {
+  //
+  //   }
+  //
+  // }
 
 
 }
