@@ -5,7 +5,7 @@ import (
   "io/ioutil"
   "math/rand"
 
-  "github.com/darkincred/chip8-emu/disp"
+
 )
 
 
