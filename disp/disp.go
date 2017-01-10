@@ -11,13 +11,16 @@ var (
   WindowTitle = "myChip8"
   WindowWidth = 320
   WindowHeight = 640
+
 )
 
 type Disp struct {
   Window *sdl.Window
   Renderer *sdl.Renderer
   Running bool
+  Event sdl.Event
 }
+
 
 func SetupGraphics() (*Disp, error){
 
@@ -35,23 +38,16 @@ func SetupGraphics() (*Disp, error){
 		return nil, err
 	}
 
-
-    renderer.Clear()
-    renderer.Present()
-
-
+running := true;
 
 return &Disp{
 		Window:   window,
 		Renderer: renderer,
+    Running: running,
 	}, nil
 
 }
-func (disp *Disp) HandleEvents(event sdl.Event) {
-	for event = sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
-		switch event.(type) {
-		case *sdl.QuitEvent:
-			disp.Running = false
-		}
-	}
+
+func (disp *Disp) IsRunning() bool{
+  return disp.Running;
 }
