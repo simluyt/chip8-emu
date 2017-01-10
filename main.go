@@ -41,7 +41,11 @@ func main() {
 
     //  myChip.Key, myChip.KeyState = myDisp.GetKey()
 
-    time.Sleep(120 * time.Millisecond) // later n options
+    if myChip.KeyPad.QuitFlag {
+      myDisp.Running = false
+    }
+
+    time.Sleep(0 * time.Millisecond) // later n options
   }
   //myChip.Test()
   // for yLoc := 0; yLoc < 32 ; yLoc++ {
@@ -58,13 +62,22 @@ func updateGraphics(c *chip8.CPU, d *disp.Disp) {
   for yLoc := 0; yLoc < 32; yLoc++ {
     for xLoc := 0; xLoc < 64; xLoc++ {
       if c.Gfx[yLoc][xLoc] == 1 {
+        d.Renderer.SetDrawColor(255,255,255,1)
         for x := 0; x < 10; x++ {
           for y := 0; y < 10; y++ {
             d.Renderer.DrawPoint((xLoc *10) + y,(yLoc * 10) +x)
           }
         }
 
+      } else {
+        d.Renderer.SetDrawColor(0,0,0,1)
+        for x := 0; x < 10; x++ {
+          for y := 0; y < 10; y++ {
+            d.Renderer.DrawPoint((xLoc *10) + y,(yLoc * 10) +x)
           }
+        }
+
+      }
       }
 
     }

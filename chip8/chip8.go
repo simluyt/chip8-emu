@@ -5,7 +5,7 @@ import (
   "io/ioutil"
   "math/rand"
 
-  
+  "github.com/darkincred/chip8-emu/input"
 
 )
 
@@ -31,7 +31,7 @@ type CPU struct {
   stack [16] uint16; // Stack
   sp uint16; // Stack pointer
 
-  Key [16] byte
+  KeyPad *input.Keyboard
 
 }
 
@@ -53,6 +53,8 @@ func (c *CPU) Init() {
   fmt.Printf("Initializing...\n")
 
   c.pc = 0x200; // Set Program Counter to start of loaded program
+
+  c.KeyPad = &input.Keyboard{}
 
   for i := 0; i < 16; i++ {
     c.V[i] = 0x00// Load fontset in memory
@@ -288,7 +290,8 @@ func (c *CPU) decode() { // Decode add error support
 
           case 0x000A: // 0xFX0A --> A key press is awaited, and then stored in VX. (Blocking Operation. All instruction halted until next key event
 
-             c.V[x], _  = c.getKey()
+            c.getKey()
+            c.V[x]  = c.KeyPad.Latest
 
           case 0x0015: // 0xFX15 --> Sets the delay timer to VX.
               c.delay_timer = c.V[x]
@@ -350,6 +353,7 @@ func (c *CPU) clearDisp() {
       c.Gfx[xLoc][yLoc] = 0;
     }
   } // Clear the display
+  c.DrawFlag = true
 }
 
 func (c *CPU) drawSprite(vX byte, vY byte, height uint16) { // OPnieuw
@@ -374,11 +378,11 @@ for yLine := 0; uint16(yLine) < height; yLine++ {
 }
 
 func (c *CPU) getKey() {
-
+  c.KeyPad.Poll()
 }
 
 func (c *CPU) keyDown(index byte) (bool) {
-  if c.Key[index] == 1  {
+  if c.KeyPad.Keys[index] == 1  {
     return true
   } else {
     return false

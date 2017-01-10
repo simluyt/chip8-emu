@@ -6,60 +6,45 @@ import (
 
 type Keyboard struct {
 
-  keys [16] byte
-  event sdl.Event
+  Keys [16] byte
+
+  //PollFlag bool
+  QuitFlag bool
+  Latest byte
 
 }
 
-func (*key Keyboard) Poll() {
-
-  	for event = sdl.PollEvent(); event == *sdl.KeyDownEvent; event = sdl.PollEvent() {
+func (key *Keyboard) Poll() {
+    var event sdl.Event
+  	for event = sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
   		switch t := event.(type) {
-      case *sdl.KeyDownEvent:
-        switch t.Keysym.Sym {
-        case sdl.GetKeyFromName("&"):
-          return 0x01, t.State;
-        case sdl.GetKeyFromName("é"):
-          return 0x02, t.State;
-        case sdl.GetKeyFromName("\""):
-          return 0x03, t.State;
-        case sdl.GetKeyFromName("'"):
-          return 0x0C, t.State;
-        case sdl.GetKeyFromName("a"):
-          return 0x04, t.State;
-        case sdl.GetKeyFromName("z"):
-          return 0x05, t.State;
-        case sdl.GetKeyFromName("e"):
-          return 0x06, t.State;
-        case sdl.GetKeyFromName("r"):
-          return 0x0D, t.State;
-        case sdl.GetKeyFromName("q"):
-          return 0x07, t.State;
-        case sdl.GetKeyFromName("s"):
-          return 0x08, t.State;
-        case sdl.GetKeyFromName("d"):
-          return 0x09, t.State;
-        case sdl.GetKeyFromName("f"):
-          return 0x0E, t.State;
-        case sdl.GetKeyFromName("w"):
-          return 0x0A, t.State;
-        case sdl.GetKeyFromName("x"):
-          return 0x00, t.State;
-        case sdl.GetKeyFromName("c"):
-          return 0x0B, t.State;
-        case sdl.GetKeyFromName("v"):
-          return 0x0F, t.State;
+        case *sdl.KeyDownEvent:
+          key.Latest = byte(t.Keysym.Unicode)
+          key.Keys[keyMapAzerty[key.Latest]] = 1
+        case *sdl.KeyUpEvent:
+          key.Latest = byte(t.Keysym.Unicode)
+          key.Keys[keyMapAzerty[key.Latest]] = 0
+        case *sdl.QuitEvent:
+          key.QuitFlag = true
         default:
+          event = nil
           continue
-        }
       }
-
-  		}
-      return 0xFF, 0xFF
-  	}
-
+    }
 }
 
-func (*key Keyboard) Stop() {
 
+
+var keyMapAzerty = map[byte]byte{
+	'1': 0x01, '2': 0x02, '3': 0x03, '4': 0x0C,
+	'a': 0x04, 'z': 0x05, 'e': 0x06, 'r': 0x0D,
+	'q': 0x07, 's': 0x08, 'd': 0x09, 'f': 0x0E,
+	'w': 0x0A, 'x': 0x00, 'c': 0x0B, 'v': 0x0F,
+}
+
+var keyMap = map[rune]byte{
+	'1': 0x01, '2': 0x02, '3': 0x03, '4': 0x0C,
+	'q': 0x04, 'w': 0x05, 'e': 0x06, 'r': 0x0D,
+	'a': 0x07, 's': 0x08, 'd': 0x09, 'f': 0x0E,
+	'z': 0x0A, 'x': 0x00, 'c': 0x0B, 'v': 0x0F,
 }
