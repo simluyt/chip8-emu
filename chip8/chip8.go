@@ -197,7 +197,7 @@ func (c *CPU) decode() { // Decode add error support
             c.V[x] += c.V[y]
 
           case 0x8005: // 0x8XY5 --> Subtracts value VY from VX if there is a borrow set VF to 0 else to 1
-            if (c.V[x] < (c.V[y])){
+            if ((c.V[x] & 0x0F) < ((c.V[y] & 0x0F)){
 
               c.V[0xF] = 1 //borrow
 
@@ -246,8 +246,9 @@ func (c *CPU) decode() { // Decode add error support
 
     case 0xC000: // 0xCXNN --> Assign a random(0..255) AND NN to VX
       x := (c.opcode & 0x0F00)>>8
-      rnd := rand.Intn(32)
-      c.V[x] = byte(rnd) & 0x00FF
+      nn := (c.opcode & 0x00FF)
+      rnd := rand.Intn(255)
+      c.V[x] = byte(rnd) & byte(nn)
 
       fmt.Printf("ASSIGN rand: %X to REG 0x%X\n",rnd ,x)
 
@@ -255,8 +256,8 @@ func (c *CPU) decode() { // Decode add error support
       x := byte((c.opcode & 0x0F00)>>8)
       y := byte((c.opcode & 0x00F0)>>4)
 
-      fmt.Printf("Locations: 0x%X and 0x%X\n", c.V[x],c.V[y])
-      fmt.Printf("Locations: %d and %d\n", c.V[x],c.V[y])
+      fmt.Printf("Locations: 0x%X and 0x%X\n", c.V[y],c.V[x])
+      fmt.Printf("Locations: %d and %d\n", c.V[y],c.V[x])
 
       h := (c.opcode & 0x000F)
 

@@ -6,7 +6,7 @@ import (
 
   "github.com/darkincred/chip8-emu/chip8"
   "github.com/darkincred/chip8-emu/disp"
-
+  "github.com/veandco/go-sdl2/sdl"
 
 )
 
@@ -25,7 +25,7 @@ func main() {
 
 
   myChip.Init() // Initializing
-  myChip.Load("PONG") // Load a game
+  myChip.Load("BRIX") // Load a game
   //myChip.Test()
   // for i := 0; i < 10; i++ {
   //   myChip.Cycle()
@@ -41,9 +41,7 @@ func main() {
 
     //  myChip.Key, myChip.KeyState = myDisp.GetKey()
 
-    if myChip.KeyPad.QuitFlag {
-      myDisp.Running = false
-    }
+    pollQuit(myDisp)
 
     time.Sleep(0 * time.Millisecond) // later n options
   }
@@ -85,3 +83,12 @@ func updateGraphics(c *chip8.CPU, d *disp.Disp) {
   d.Renderer.Present()
   c.DrawFlag = false;
 }
+
+func pollQuit(d *disp.Disp) {
+  var event sdl.Event
+  event = sdl.PollEvent()
+  switch event.(type) {
+  case *sdl.QuitEvent:
+    d.Running = false
+  }
+  }
