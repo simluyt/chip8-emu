@@ -197,13 +197,13 @@ func (c *CPU) decode() { // Decode add error support
             c.V[x] += c.V[y]
 
           case 0x8005: // 0x8XY5 --> Subtracts value VY from VX if there is a borrow set VF to 0 else to 1
-            if ((c.V[x] & 0x0F) < ((c.V[y] & 0x0F)){
+            if ((c.V[x] & 0x0F)) < ((c.V[y] & 0x0F)){
 
-              c.V[0xF] = 1 //borrow
+              c.V[0xF] = 0 //borrow
 
             } else {
 
-                c.V[0xF] = 0;
+                c.V[0xF] = 1;
             }
             c.V[x] -= c.V[y]
 
@@ -213,16 +213,17 @@ func (c *CPU) decode() { // Decode add error support
             fmt.Printf("BITSHIFT RIGHT REG 0x%X : 0x%X\n",x, c.V[x])
 
           case 0x8007: // 0x8XY7 --> Sets VX to VY minus VX. VF is set to 0 when there's a borrow, and 1 when there isn't.
-            if (c.V[x] < (c.V[y])) {
-              c.V[0xF] = 1 //borrow
+            if ((c.V[y] & 0x000F)) < ((c.V[x] & 0x000F)) {
+
+              c.V[0xF] = 0 //borrow
 
               } else {
 
-                c.V[0xF] = 0;
-                c.V[x] = c.V[y] - c.V[x]
+                c.V[0xF] = 1;
               }
+            c.V[x] = c.V[y] - c.V[x]
           case 0x800E: // 0x8XYE --> Shifts VX left by one. VF is set to the value of the most significant bit of VX before the shift.
-            c.V[0xF] = byte((c.opcode & 0xF000)>>12)
+            c.V[0xF] = byte(c.V[x]>>8)
             c.V[x] = c.V[x]<<4
             fmt.Printf("BITSHIFT RIGHT REG 0x%X : 0x%X\n",x, c.V[x])
           default:
