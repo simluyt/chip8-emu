@@ -5,8 +5,6 @@ import (
   "io/ioutil"
   "math/rand"
 
-  "github.com/darkincred/chip8-emu/input"
-
 )
 
 
@@ -31,7 +29,10 @@ type CPU struct {
   stack [16] uint16; // Stack
   sp uint16; // Stack pointer
 
-  KeyPad *input.Keyboard
+  Key[16] byte
+  InputReg *byte
+  InputFlag bool
+
 
 }
 
@@ -54,7 +55,6 @@ func (c *CPU) Init() {
 
   c.pc = 0x200; // Set Program Counter to start of loaded program
 
-  c.KeyPad = &input.Keyboard{}
 
   for i := 0; i < 16; i++ {
     c.V[i] = 0x00// Load fontset in memory
@@ -187,14 +187,15 @@ func (c *CPU) decode() { // Decode add error support
 
 
           case 0x8004: // 0x8XY4 --> Adds value VY to VX if there is a carry set VF to 1 else to 0
-            if (c.V[y] > (0xFF - c.V[x])){
+            r := uint16(c.V[x]) + uint16(c.V[y])
+
+            if r > 0xFF {
 
                 c.V[0xF] = 1 // Carry
             } else {
-
                 c.V[0xF] = 0;
             }
-            c.V[x] += c.V[y]
+            c.V[x] = byte(r)
 
           case 0x8005: // 0x8XY5 --> Subtracts value VY from VX if there is a borrow set VF to 0 else to 1
             if ((c.V[x] & 0x0F)) < ((c.V[y] & 0x0F)){
@@ -291,9 +292,7 @@ func (c *CPU) decode() { // Decode add error support
               c.V[x] = c.delay_timer
 
           case 0x000A: // 0xFX0A --> A key press is awaited, and then stored in VX. (Blocking Operation. All instruction halted until next key event
-
-            c.getKey()
-            c.V[x]  = c.KeyPad.Latest
+        //  TODO  c.V[x]  = c.KeyPad.Latest
 
           case 0x0015: // 0xFX15 --> Sets the delay timer to VX.
               c.delay_timer = c.V[x]
@@ -380,11 +379,11 @@ for yLine := 0; uint16(yLine) < height; yLine++ {
 }
 
 func (c *CPU) getKey() {
-  c.KeyPad.Poll()
+  c.InputFlag = true
 }
 
 func (c *CPU) keyDown(index byte) (bool) {
-  if c.KeyPad.Keys[index] == 1  {
+  if c.Key[index] == 1  {
     return true
   } else {
     return false
@@ -401,51 +400,6 @@ func (c *CPU) Test() {
   for i := 0; i <= 550; i++ {
     c.Cycle()
   }
-
-//   c.memory[0x200] = 0x6A
-//   c.memory[0x201] = 0x02
-//   c.memory[0x202] = 0x6B
-//   c.memory[0x203] = 0x0C
-//
-//   c.Cycle()
-//   c.Cycle()
-//
-//   fmt.Printf("REG 1: 0x%X and REG 2: 0x%X\n", c.V[0x1], c.V[0x2])
-//
-//   c.memory[0x204] = 0x6C
-//   c.memory[0x205] = 0x02
-//
-//   c.memory[0x206] = 0x6D
-//   c.memory[0x207] = 0x3F
-//
-//   c.Cycle()
-//   c.Cycle()
-//
-//   fmt.Printf("REG 1: 0x%X and REG 2: 0x%X\ndrawFlag: 0x%X\n", c.V[0x1], c.V[0x2],c.V[0xF])
-//
-//   fmt.Printf("Screen before draw\n")
-//
-//   for xLoc := 0; xLoc < 32 ; xLoc++ {
-//     for yLoc := 0; yLoc < 64 ; yLoc++ {
-//       fmt.Printf("%d",c.Gfx[xLoc][yLoc])
-//     }
-//     fmt.Printf("\n")
-//   }
-//
-// fmt.Printf("Screen after draw\n")
-//
-// c.memory[0x208] = 0xA2
-// c.memory[0x209] = 0xEA
-// c.Cycle()
-// c.memory[0x20A] = 0xDA
-// c.memory[0x20B] = 0xB6
-//
-// c.Cycle()
-//
-// c.memory[0x20C] = 0xDC
-// c.memory[0x20D] = 0xD6
-//
-// c.Cycle()
 
 for yLoc := 0; yLoc < 32 ; yLoc++ {
   for xLoc := 0; xLoc < 64 ; xLoc++ {

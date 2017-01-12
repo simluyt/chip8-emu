@@ -6,6 +6,7 @@ import (
 
   "github.com/darkincred/chip8-emu/chip8"
   "github.com/darkincred/chip8-emu/disp"
+
   "github.com/veandco/go-sdl2/sdl"
 
 )
@@ -19,19 +20,16 @@ func main() {
 
 
   myChip, _ := chip8.NewCPU()
- myDisp, _ := disp.SetupGraphics()
-
+  myDisp, _ := disp.SetupGraphics()
 
 
 
   myChip.Init() // Initializing
-  myChip.Load("BRIX") // Load a game
-  //myChip.Test()
-  // for i := 0; i < 10; i++ {
-  //   myChip.Cycle()
-  // }
-  //
-  //
+  myChip.Load("PONG") // Load a game
+
+
+
+
   for myDisp.IsRunning() {
     myChip.Cycle()
 
@@ -39,21 +37,17 @@ func main() {
       updateGraphics(myChip,myDisp)
     }
 
-    //  myChip.Key, myChip.KeyState = myDisp.GetKey()
 
-    pollQuit(myDisp)
+
+
+    pollEvent(myDisp,myChip)
+
 
     time.Sleep(0 * time.Millisecond) // later n options
   }
-  //myChip.Test()
-  // for yLoc := 0; yLoc < 32 ; yLoc++ {
-  //   for xLoc := 0; xLoc < 64 ; xLoc++ {
-  //     fmt.Printf("%d",myChip.Gfx[yLoc][xLoc])
-  //   }
-  //   fmt.Printf("\n")
-  // }
 
 }
+
 
 func updateGraphics(c *chip8.CPU, d *disp.Disp) {
 
@@ -84,11 +78,28 @@ func updateGraphics(c *chip8.CPU, d *disp.Disp) {
   c.DrawFlag = false;
 }
 
-func pollQuit(d *disp.Disp) {
+func pollEvent(d *disp.Disp, c *chip8.CPU) {
   var event sdl.Event
-  event = sdl.PollEvent()
-  switch event.(type) {
-  case *sdl.QuitEvent:
-    d.Running = false
+  for event = sdl.PollEvent(); event != nil; event = sdl.PollEvent() {
+    switch t := event.(type) {
+      case *sdl.KeyDownEvent:
+  fmt.Printf("Key Down: %x\n", keyMap[t.Keysym.Sym])
+        c.Key[keyMap[t.Keysym.Sym]] = 1
+      case *sdl.KeyUpEvent:
+        fmt.Printf("Key Up: %x\n", keyMap[t.Keysym.Sym])
+        c.Key[keyMap[t.Keysym.Sym]] = 0
+      case *sdl.QuitEvent:
+        d.Running = false
+      default:
+        event = nil
+
+    }
   }
-  }
+}
+
+var keyMap = map[sdl.Keycode]byte{
+	'1': 0x01, '2': 0x02, '3': 0x03, '4': 0x0C,
+	'a': 0x04, 'z': 0x05, 'e': 0x06, 'r': 0x0D,
+	'q': 0x07, 's': 0x08, 'd': 0x09, 'f': 0x0E,
+	'w': 0x0A, 'x': 0x00, 'c': 0x0B, 'v': 0x0F,
+}
