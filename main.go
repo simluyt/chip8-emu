@@ -25,6 +25,9 @@ func main() {
 
 
   myChip.Init() // Initializing
+
+  // Load a Chip8 screen and using Blocking OP for enter?
+
   myChip.Load("BRIX") // Load a game
 
 
@@ -36,9 +39,6 @@ func main() {
     if myChip.DrawFlag {
       updateGraphics(myChip,myDisp)
     }
-
-
-
 
     pollEvent(myDisp,myChip)
 

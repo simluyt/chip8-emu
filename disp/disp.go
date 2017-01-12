@@ -1,3 +1,9 @@
+/*
+
+  TODO Catch errors
+
+
+*/
 package disp
 
 import (
@@ -17,8 +23,7 @@ var (
 type Disp struct {
   Window *sdl.Window
   Renderer *sdl.Renderer
-  Running bool
-  Event sdl.Event
+  RunFlag bool
 }
 
 
@@ -38,16 +43,18 @@ func SetupGraphics() (*Disp, error){
 		return nil, err
 	}
 
-running := true;
+
 
 return &Disp{
 		Window:   window,
 		Renderer: renderer,
-    Running: running,
+    RunFlag: true,
 	}, nil
 
 }
 
-func (disp *Disp) IsRunning() bool{
-  return disp.Running;
+func LoadMenu(d *Disp) {
+  menu [320][640] byte
+
+  
 }
