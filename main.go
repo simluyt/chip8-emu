@@ -25,7 +25,7 @@ func main() {
 
 
   myChip.Init() // Initializing
-  myChip.Load("PONG") // Load a game
+  myChip.Load("BRIX") // Load a game
 
 
 
