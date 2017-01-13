@@ -28,15 +28,15 @@ func main() {
 
   // Load a Chip8 screen and using Blocking OP for enter?
 
-  myChip.Load("BRIX") // Load a game
+  myChip.Load("c8games/BRIX") // Load a game
 
 
 
 
-  for myDisp.IsRunning() {
+  for myDisp.RunFlag {
     myChip.Cycle()
 
-    if myChip.DrawFlag {
+    if myChip.DrawFlag { // Frameskips  settings here
       updateGraphics(myChip,myDisp)
     }
 
@@ -53,18 +53,22 @@ func updateGraphics(c *chip8.CPU, d *disp.Disp) {
 
   for yLoc := 0; yLoc < 32; yLoc++ {
     for xLoc := 0; xLoc < 64; xLoc++ {
-      if c.Gfx[yLoc][xLoc] == 1 {
+
+      r := c.Gfx[yLoc][xLoc] ^ 1
+      if r == 0 {
+
         d.Renderer.SetDrawColor(255,255,255,1)
         for x := 0; x < 10; x++ {
           for y := 0; y < 10; y++ {
+
             d.Renderer.DrawPoint((xLoc *10) + y,(yLoc * 10) +x)
           }
         }
-
       } else {
-        d.Renderer.SetDrawColor(0,0,0,1)
+          d.Renderer.SetDrawColor(0,0,0,1)
         for x := 0; x < 10; x++ {
           for y := 0; y < 10; y++ {
+
             d.Renderer.DrawPoint((xLoc *10) + y,(yLoc * 10) +x)
           }
         }
@@ -89,7 +93,7 @@ func pollEvent(d *disp.Disp, c *chip8.CPU) {
         fmt.Printf("Key Up: %x\n", keyMap[t.Keysym.Sym])
         c.Key[keyMap[t.Keysym.Sym]] = 0
       case *sdl.QuitEvent:
-        d.Running = false
+        d.RunFlag = false
       default:
         event = nil
 

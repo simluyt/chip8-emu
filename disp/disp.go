@@ -52,9 +52,3 @@ return &Disp{
 	}, nil
 
 }
-
-func LoadMenu(d *Disp) {
-  menu [320][640] byte
-
-  
-}
