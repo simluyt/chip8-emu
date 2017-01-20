@@ -30,8 +30,6 @@ type CPU struct {
   sp uint16; // Stack pointer
 
   Key[16] byte
-  InputReg *byte
-  InputFlag bool
 
 
 }
